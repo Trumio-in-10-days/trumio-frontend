@@ -11,6 +11,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Link } from 'react-router-dom'
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 // Mock video courses data
 const mockCourses = [
@@ -68,10 +70,10 @@ const getStudent = useCallback(async () => {
                 token: localStorage['authToken'],
             });
             console.log(response);
-            if(response.status!==201){
+            if(response.status!==200){
               toast.success("Error completing Courses!");
             }else{
-                
+                toast.success("Course taken!");
             }
         
           } catch (error) {
@@ -87,33 +89,40 @@ useEffect(() => {
   const handleIssueSubmit = async (e) => {
     e.preventDefault()
     setIsGeneratingSkills(true)
-    //function to find skills from issues should be called here
     setGeneratedSkills([])
     setRecommendedCourses([])
 
-    // Simulate LLM API call to generate skills
-    const skills = await simulateLLMSkillGeneration(issue)
-    setGeneratedSkills(['react']);
+    try {
+        const response = await axios.post('http://localhost:5000/findSkillfromIssue', {
+            issue:issue
+        });
+        console.log(response);
+        if(response.status!==200){
+          toast.success("Error getting skills from issue!");
+        }else{
+            const final = response.data.data.map(element => element.toLowerCase().trim());
+            setGeneratedSkills(final);
+        }
+    
+      } catch (error) {
+        toast.error(error);
+        console.log('Error getting skills from issue', error);
+      }
+    
 
     // Find matching courses based on generated skills
-    const matchingCourses = findMatchingCourses(['react']);
+    const matchingCourses = findMatchingCourses();
     setRecommendedCourses(matchingCourses)
 
     setIsGeneratingSkills(false)
   }
 
-  const simulateLLMSkillGeneration = async (issue) => {
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    const allSkills = ['react', 'javascript', 'frontend', 'python', 'algorithms', 'backend', 'data structures', 'problem solving', 'ui design', 'ux design', 'wireframing', 'machine learning', 'data analysis']
-    return allSkills.filter(() => Math.random() > 0.7)
-  }
-
-  const findMatchingCourses = (skills) => {
+  const findMatchingCourses = () => {
     return courses
-      .filter(course => course.skills.some(skill => skills.includes(skill)))
+      .filter(course => course.skills.some(skill => generatedSkills.includes(skill.trim())))
       .sort((a, b) => {
-        const aMatchCount = a.skills.filter(skill => skills.includes(skill)).length
-        const bMatchCount = b.skills.filter(skill => skills.includes(skill)).length
+        const aMatchCount = a.skills.filter(skill => generatedSkills.includes(skill.toLowerCase())).length
+        const bMatchCount = b.skills.filter(skill => generatedSkills.includes(skill)).length
         return bMatchCount - aMatchCount
       })
   }

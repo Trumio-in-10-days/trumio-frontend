@@ -14,6 +14,8 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup';
 import axios from 'axios';
 import { toast } from 'react-toastify'
+import { useToast } from "../../hooks/use-toast"
+
 
 
 // Mock data for demonstration purposes
@@ -35,12 +37,13 @@ import { toast } from 'react-toastify'
   ]
   
   export default function AdminDashboard() {
+    const {toast} = useToast();
     const [courses, setCourses] = useState([]);
     const [students, setStudents] = useState([])
     const [title, setTitle] = useState('')
     const [file, setFile] = useState(null)
     const [selectedStudent, setSelectedStudent] = useState()
-    const [studentSkills, setStudentSkills] = useState([])
+    const [skills, setSkills] = useState([])
     const [matchedAlumni, setMatchedAlumni] = useState([])
     const [selectedAlumni, setSelectedAlumni] = useState('')
     const [projectDescription, setProjectDescription] = useState('')
@@ -84,21 +87,7 @@ import { toast } from 'react-toastify'
       setIsLoading(false)
     }
   
-    const simulateLLMSkillExtraction = async (completedCourses) => {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      const allSkills = ['react', 'javascript', 'frontend', 'python', 'backend', 'algorithms', 'data structures', 'web design', 'ui']
-      return allSkills.filter(() => Math.random() > 0.5)
-    }
   
-    const findMatchingAlumni = (studentSkills) => {
-      return mockAlumni
-        .map(alumni => ({
-          ...alumni,
-          matchingSkills: alumni.skills.filter(skill => studentSkills.includes(skill))
-        }))
-        .filter(alumni => alumni.matchingSkills.length > 0)
-        .sort((a, b) => b.matchingSkills.length - a.matchingSkills.length)
-    }
   
     const handlePairing = async () => {
         try {
@@ -179,7 +168,10 @@ import { toast } from 'react-toastify'
                 });
             
                 if(response.status===200){
-                  toast.success("Course uploaded successfully!");
+                  toast({
+                    title: "Course uploaded successfully!",
+                  })
+                  getCourses();
                 }
             
               } catch (error) {
@@ -255,6 +247,23 @@ import { toast } from 'react-toastify'
                     </div>
                     <Button type="submit">Generate Skills</Button>
                   </form>
+                  {skills.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Relevant Skills</CardTitle>
+            <CardDescription>Based on your issue, these skills might be helpful to develop:</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <Badge key={index} variant="secondary">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
                 </CardContent>
               </Card>
   

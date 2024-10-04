@@ -54,7 +54,7 @@ export default function AuthPage() {
       if(response.status===200){
         const token = response.data.token;
         localStorage.setItem('authToken', token);
-        navigate('/admin');
+        navigate('/client');
       }
   
       console.log('Sign-up successful', response.data);
@@ -90,7 +90,7 @@ export default function AuthPage() {
       if(response.status===200){
         const token = response.data.token;
         localStorage.setItem('authToken', token);
-        navigate('/admin');
+        navigate('/client');
       }
   
       console.log('Sign-in successful', response.data);
@@ -148,7 +148,7 @@ export default function AuthPage() {
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="admin" id="admin" />
-            <Label htmlFor="admin">Admin</Label>
+            <Label htmlFor="admin">Client</Label>
           </div>
         </RadioGroup>
 

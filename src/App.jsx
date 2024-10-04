@@ -22,7 +22,7 @@ function App() {
       element: <AuthPage/>,
     },
     {
-      path: "/admin",
+      path: "/client",
       element: <AdminDashboard/>,
     },
     {

@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Badge } from "../../components/ui/badge"
@@ -15,6 +15,9 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { toast } from 'react-toastify'
 import { useToast } from "../../hooks/use-toast"
+import { Textarea } from "../../components/ui/textarea"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
+import { Plus } from "lucide-react"
 
 
 
@@ -35,7 +38,18 @@ import { useToast } from "../../hooks/use-toast"
     { id: 3, name: "Eva Green", skills: ["javascript", "frontend", "ui design"] },
     { id: 4, name: "Frank Miller", skills: ["python", "algorithms", "backend"] },
   ]
+  const getRequiredSkills = async (description) => {
+    // Simulating API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    return ['React', 'Node.js', 'TypeScript', 'API Integration', 'UI/UX Design']
+  }
   
+  // Mock function to simulate saving to database
+  const saveProject = async (project) => {
+    // Simulating API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    return { ...project, id: Math.random().toString(36).substr(2, 9) }
+  }
   export default function AdminDashboard() {
     const {toast} = useToast();
     const [courses, setCourses] = useState([]);
@@ -124,6 +138,23 @@ import { useToast } from "../../hooks/use-toast"
             console.error('Error during uploading course', error.response.data);
           }
     },[]);
+    const getProjects = useCallback( async () => {
+      try {
+          const response = await axios.post('http://localhost:5000/getProjects', {
+            token: localStorage['authToken']
+          });
+          console.log(response);
+          if(response.status!==200){
+            toast.success("Error fetching projects!");
+          }else{
+              setProjects(response.data.projects);
+          }
+      
+        } catch (error) {
+          // toast.error(error.response.data);
+          console.error('Error during uploading course', error.response.data);
+        }
+  },[]);
     const getStudents = useCallback( async () => {
         try {
             const response = await axios.get('http://localhost:5000/getAllStudents');
@@ -140,14 +171,14 @@ import { useToast } from "../../hooks/use-toast"
           }
     },[]);
     useEffect(() => {
-        getCourses();
+        // getCourses();
         getStudents();
-    },[getCourses, getStudents])
+        getProjects();
+    },[ getStudents, getProjects])
     const formik = useFormik({
         initialValues: {
           title: '',
           description: '',
-          link:'',
         },
         validationSchema: Yup.object({
             title: Yup.string()
@@ -155,117 +186,59 @@ import { useToast } from "../../hooks/use-toast"
           .max(100, 'Name cannot exceed 100 characters'),
     
             description: Yup.string()
-            .required('Email is Required'),
-            link: Yup.string()
-                .required("Link is required"),
+            .required('Description is Required'),
         }),
         onSubmit: async values => {
+          setIsLoading(true);
             try {
-                const response = await axios.post('http://localhost:5000/upload', {
+                const response = await axios.post('http://localhost:5000/addProject', {
                   title: values.title,
                   description: values.description,
-                  link: values.link,
+                  token: localStorage['authToken']
                 });
+                console.log(response);
             
                 if(response.status===200){
                   toast({
-                    title: "Course uploaded successfully!",
+                    title: "Project uploaded successfully!",
                   })
-                  getCourses();
+                  getProjects();
+                  setIsDialogOpen(false);
                 }
             
               } catch (error) {
                 toast.error(error.response.data);
                 console.error('Error during uploading course', error.response.data);
               }
+              setIsLoading(false);
         },
       });
+      const [projects, setProjects] = useState([])
+  const [newProject, setNewProject] = useState({ title: '', description: '' })
+  // const [isLoading, setIsLoading] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+
+  const handleAssign = (projectId, applicantId) => {
+    setProjects(projects.map(project => 
+      project.id === projectId 
+        ? { ...project, status: 'Assigned', assignedTo: applicantId }
+        : project
+    ))
+  }
   
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6">Client Dashboard</h1>
         
         <Tabs defaultValue="courses" className="space-y-4">
           <TabsList>
             <TabsTrigger value="courses">Course Management</TabsTrigger>
-            <TabsTrigger value="pairing">Student-Alumni Pairing</TabsTrigger>
+            <TabsTrigger value="pairing">Projects</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses">
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upload New Course</CardTitle>
-                  <CardDescription>Add a new video course to the platform</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={formik.handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Course Title</Label>
-                      <Input 
-                        type='text'
-                        name='title'
-                        id='title'
-                        placeholder='Title'
-                        value={formik.values.title}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Input 
-                        type='text'
-                        name='description'
-                        id='description'
-                        placeholder='Description'
-                        value={formik.values.description}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="link">Link</Label>
-                      <Input 
-                        type='text'
-                        name='link'
-                        id='link'
-                        placeholder='Link'
-                        value={formik.values.link}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="video">Course Video</Label>
-                      <Input 
-                        id="video" 
-                        type="file" 
-                        onChange={(e) => setFile(e.target.files[0])} 
-                        accept="video/*" 
-                      />
-                    </div>
-                    <Button type="submit">Generate Skills</Button>
-                  </form>
-                  {skills.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Relevant Skills</CardTitle>
-            <CardDescription>Based on your issue, these skills might be helpful to develop:</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill, index) => (
-                <Badge key={index} variant="secondary">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-                </CardContent>
-              </Card>
   
               <Card>
                 <CardHeader>
@@ -306,77 +279,118 @@ import { useToast } from "../../hooks/use-toast"
           </TabsContent>
           
           <TabsContent value="pairing">
-            <Card>
-              <CardHeader>
-                <CardTitle>Student-Alumni Pairing</CardTitle>
-                <CardDescription>Pair students with alumni for projects based on skills</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="student">Select Student</Label>
-                    <Select value={selectedStudent} onValueChange={handleStudentSelect}>
-                      <SelectTrigger id="student">
-                        <SelectValue placeholder="Select a student" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((student) => (
-                          <SelectItem key={student._id} value={student.name}>
-                            {student.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isLoading && (
-                      <div className="flex items-center space-x-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Analyzing student skills...</span>
-                      </div>
-                    )}
-                  </div>
-                  {matchedAlumni && matchedAlumni.length>0 && (
-                    <div className="space-y-2">
-                      <Label htmlFor="alumni">Select Matching Alumni</Label>
-                      <Select value={selectedAlumni} onValueChange={setSelectedAlumni}>
-                        <SelectTrigger id="alumni">
-                          <SelectValue placeholder="Select an alumni" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {matchedAlumni.map((alumni) => (
-                            <SelectItem key={alumni.name} value={alumni.name}>
-                              {alumni.name} (Matching skills: {alumni.commonSkills.length})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedAlumni && (
-                        <div className="mt-2">
-                          <span className="font-semibold">Alumni Common Skills: </span>
-                          {matchedAlumni.find(a => a.name === selectedAlumni)?.commonSkills.map((skill) => (
-                            <Badge key={skill} variant="outline" className="mr-1">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="project-description">Project Description</Label>
-                    <Input 
-                      id="project-description" 
-                      value={projectDescription} 
-                      onChange={(e) => setProjectDescription(e.target.value)} 
-                      placeholder="Enter project description" 
-                      required 
-                    />
-                  </div>
-                  <Button onClick={handlePairing} disabled={!selectedStudent || !selectedAlumni || !projectDescription}>
-                    Pair for Project
-                  </Button>
+          <div className="container mx-auto p-4">
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="mb-4">
+            <Plus className="mr-2 h-4 w-4" /> Add New Project
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Project</DialogTitle>
+            <DialogDescription>
+              Enter the details of your new project. Our AI will suggest required skills based on your description.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={formik.handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Title
+                </Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={formik.values.title}
+                  onChange={formik.handleChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formik.values.description}
+                  onChange={formik.handleChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please wait
+                  </>
+                ) : (
+                  'Add Project'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {projects.map((project) => (
+          <Card key={project._id}>
+            <CardHeader>
+              <CardTitle>{project.title}</CardTitle>
+              <CardDescription>Status: {project.assignedStudents.length>0 ? `Taken`: `Open`}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-2">{project.description}</p>
+              <h4 className="font-semibold mb-1">Required Skills:</h4>
+              <ul className="list-disc list-inside mb-4">
+                {project.skills.map((skill, index) => (
+                  <li key={index}>{skill}</li>
+                ))}
+              </ul>
+              {project.assignedStudents.length>0 && (
+                <div>
+                  <h4 className="font-semibold mb-1">Applicants:</h4>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {project.assignedStudents.map((applicant) => (
+                        <TableRow key={applicant._id}>
+                          <TableCell>{applicant.name}</TableCell>
+                          <TableCell>
+                            <Button onClick={() => handleAssign(project._id, applicant._id)} size="sm">
+                              Assign
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+            <CardFooter>
+              {project.assignedStudents>0 && (
+                <p className="text-sm text-muted-foreground">
+                  Assigned to: {project.assignedStudents[0].name}
+                </p>
+              )}
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </div>
           </TabsContent>
         </Tabs>
       </div>

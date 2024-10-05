@@ -12,10 +12,14 @@ import { PlusCircle, X } from "lucide-react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Switch } from "../../components/ui/switch"
+import { Link } from 'react-router-dom'
 
 
 export default function StudentProfile() {
     const [user, setUser] = useState();
+    const [alumni, setAlumni] = useState();
+    const [appliedPrj, setAppliedPrj] = useState([]);
   const [newSkill, setNewSkill] = useState('')
   const getStudent = useCallback(async () => {
     try {
@@ -27,6 +31,7 @@ export default function StudentProfile() {
           toast.success("Error fetching Profile!");
         }else{
             setUser(response.data.student);
+            setAlumni(response.data.student.isAlumni);
         }
     
       } catch (error) {
@@ -34,9 +39,26 @@ export default function StudentProfile() {
         console.log('Error during fetching courses', error);
       }
 },[]);
+const getAppliedProjects = useCallback(async () => {
+  try {
+      const response = await axios.post('http://localhost:5000/getAppliedProjecs', {
+          token: localStorage['authToken']
+      });
+      console.log(response);
+      if(response.status!==200){
+        toast.success("Error fetching Profile!");
+      }else{
+        setAppliedPrj(response.data.projects);
+      }
+  
+    } catch (error) {
+      toast.error(error);
+      console.log('Error during fetching courses', error);
+    }
+},[]);
 useEffect(() => {
-    getStudent();
-},[getStudent])
+    getStudent(); getAppliedProjects();
+},[getStudent, getAppliedProjects])
   const addSkill = async (e) => {
     e.preventDefault();
     try {
@@ -89,6 +111,26 @@ useEffect(() => {
 
   }
 
+  const changeAlumni = async (al) => {
+    console.log(al);
+    try {
+      const response = await axios.post('http://localhost:5000/changeAlumni', {
+          token: localStorage['authToken'],
+          alumni: al,
+      });
+      console.log(response);
+      if(response.status!==200){
+        toast.success("Error fetching Profile!");
+      }else{
+          setAlumni(response.data.student.isAlumni);
+      }
+  
+    } catch (error) {
+      toast.error(error);
+      console.log('Error during fetching courses', error);
+    }
+  }
+ 
   return (
     <>
    {user && <div className="container mx-auto p-4">
@@ -103,6 +145,10 @@ useEffect(() => {
               <CardTitle className="text-2xl">{user.name}</CardTitle>
               <CardDescription>{user.email}</CardDescription>
             </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="alumni" checked={alumni} onCheckedChange={() => changeAlumni(!alumni)}/>
+              <Label htmlFor="alumni">Alumni{alumni}</Label>
+          </div>
           </div>
         </CardHeader>
       </Card>
@@ -111,7 +157,7 @@ useEffect(() => {
         <TabsList>
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="projects">Project Pairings</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses">
@@ -178,27 +224,51 @@ useEffect(() => {
 
         <TabsContent value="projects">
           <Card>
-            <CardHeader>
-              <CardTitle>Project Pairings</CardTitle>
-              <CardDescription>Your paired projects with alumni</CardDescription>
+            {user.projects.length>0 && <><CardHeader>
+              <CardTitle>Your Projects</CardTitle>
+              <CardDescription>Your projects with alumni and client</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {user.projects.length>0 && user.projects.map((pairing) => (
-                  <li key={pairing.id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <h3 className="font-semibold text-lg mb-2">{pairing.project}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">Partner: {pairing.partner}</p>
+                {user.projects.length>0 && user.projects.map((prj) => (
+                   <Link to={`/project/${prj._id}`}>
+                  <li key={prj._id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-lg mb-2">{prj.title}</h3>
+                    <h3 className="font-semibold text-base mb-2">{prj.description}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">Client: {prj.assignedBy.name}</p>
                     <div className="flex flex-wrap gap-2">
-                      {pairing.skills.map((skill, index) => (
+                      {prj.skills.map((skill, index) => (
                         <Badge key={index} variant="outline">
                           {skill}
                         </Badge>
                       ))}
                     </div>
-                  </li>
+                  </li></Link>
                 ))}
               </ul>
-            </CardContent>
+              </CardContent></>}
+              {appliedPrj.length>0 && <><CardHeader><CardTitle>Applied Projects</CardTitle><CardDescription>The Projects you applied for!</CardDescription></CardHeader>
+              <CardContent>
+              <ul className="space-y-4">
+                {appliedPrj.length>0 && appliedPrj.map((prj) => (
+                  <Link to={`/project/${prj._id}`}>
+                  <li key={prj._id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-lg mb-2">{prj.title}</h3>
+                    <h3 className="font-semibold text-base mb-2">{prj.description}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">Client: {prj.assignedBy.name}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {prj.skills.map((skill, index) => (
+                        <Badge key={index} variant="outline">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </li></Link>
+                ))}
+              </ul>
+              </CardContent></>}
+              
+
           </Card>
         </TabsContent>
       </Tabs>

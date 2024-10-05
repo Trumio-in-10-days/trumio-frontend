@@ -30,7 +30,7 @@ export default function AuthPage() {
         alumni,
       });
   
-      if(response.status===200){
+      if(response.status===201){
         const token = response.data.token;
         localStorage.setItem('authToken', token);
         navigate('/student');

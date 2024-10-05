@@ -9,6 +9,7 @@ import AuthPage from './screens/Auth'
 import AdminDashboard from './screens/Admin';
 import StudentDashboard from './screens/Student';
 import StudentProfile from './screens/StudentProfile';
+import ProjectDetailsPage from './screens/ProjectDetails';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -32,6 +33,10 @@ function App() {
     {
       path: "/student/:id",
       element: <StudentProfile/>,
+    },
+    {
+      path: "/project/:project_id",
+      element: <ProjectDetailsPage/>,
     },
   ])
 

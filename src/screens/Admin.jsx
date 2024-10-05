@@ -18,6 +18,7 @@ import { useToast } from "../../hooks/use-toast"
 import { Textarea } from "../../components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
 import { Plus } from "lucide-react"
+import { Link } from 'react-router-dom'
 
 
 
@@ -341,6 +342,7 @@ import { Plus } from "lucide-react"
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
+          <Link to={`/project/${project._id}`}>
           <Card key={project._id}>
             <CardHeader>
               <CardTitle>{project.title}</CardTitle>
@@ -387,7 +389,7 @@ import { Plus } from "lucide-react"
                 </p>
               )}
             </CardFooter>
-          </Card>
+          </Card></Link>
         ))}
       </div>
     </div>

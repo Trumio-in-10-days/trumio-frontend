@@ -85,14 +85,30 @@ export default function StudentDashboard() {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
 
-  const handleApply = (projectId) => {
-    if (!appliedProjects.includes(projectId)) {
-      setAppliedProjects([...appliedProjects, projectId])
+  const handleApply = async (projectId) => {
+    // console.log(projectId);
+    try {
+      const response = await axios.post('http://localhost:5000/applyProject', {
+        token: localStorage['authToken'],
+        projectId,
+      });
+      console.log(response);
+      if(response.status!==200){
+        toast.success("Error applying Project!");
+      }else{
+          // setCourses(response.data.courses);
+          setAppliedProjects([...appliedProjects, response.data.project._id]);
+      }
+  
+    } catch (error) {
+      toast.error(error);
+      console.log('Error during applying Project', error);
     }
   }
 
   const filteredProjects = openProjects.filter(project => {
-    const matchesFilter = filter === 'all' || (filter === 'recommended' && project.skills.some(skill => skill.toLowerCase().includes(user.skills)))
+    const matchesFilter = filter === 'all' || (filter === 'recommended' && project.skills.some(skill => user.skills.includes(skill.toLowerCase())));
+    console.log(project.skills+ " "+ matchesFilter);
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -216,13 +232,13 @@ useEffect(() => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           {project.title}
-          {project.recommended && (
+          {/* {project.recommended && (
             <Badge variant="secondary" className="ml-2">
               <Star className="mr-1 h-3 w-3" /> Recommended
             </Badge>
-          )}
+          )} */}
         </CardTitle>
-        <CardDescription>{project.client} • {project.duration}</CardDescription>
+        <CardDescription>{project.assignedBy.name}</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="mb-4">{project.description}</p>
@@ -234,10 +250,10 @@ useEffect(() => {
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={() => handleApply(project.id)}
-          disabled={appliedProjects.includes(project.id)}
+          onClick={() => handleApply(project._id)}
+          disabled={appliedProjects.includes(project._id)}
         >
-          {appliedProjects.includes(project.id) ? 'Applied' : 'Apply Now'}
+          {appliedProjects.includes(project._id) ? 'Applied' : 'Apply Now'}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
@@ -367,14 +383,14 @@ useEffect(() => {
       <ScrollArea className="h-[calc(100vh-300px)] pr-4">
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard key={project._id} project={project} />
           ))
         ) : (
           <p className="text-center text-gray-500">No projects found matching your criteria.</p>
         )}
       </ScrollArea>
 
-      <Card className="mt-6">
+      {/* <Card className="mt-6">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Briefcase className="mr-2 h-5 w-5" />
@@ -397,7 +413,7 @@ useEffect(() => {
             <p>You haven't applied to any projects yet.</p>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
           </TabsContent>
           </Tabs>

@@ -23,7 +23,7 @@ export default function AuthPage() {
   const studentSignUp  = async (name, email, password) => {
     // console.log(name, email, password, alumni);
     try {
-      const response = await axios.post('http://localhost:5000/student/signup', {
+      const response = await axios.post('http://localhost:5001/student/signup', {
         name,
         email,
         password,
@@ -44,7 +44,7 @@ export default function AuthPage() {
   const adminSignUp  = async (name, email, password) => {
     // console.log(name, email, password);
     try {
-      const response = await axios.post('http://localhost:5000/admin/signup', {
+      const response = await axios.post('http://localhost:5001/admin/signup', {
         name,
         email,
         password,
@@ -65,7 +65,7 @@ export default function AuthPage() {
   const studentSignIn  = async (email, password) => {
     // console.log( email, password);
     try {
-      const response = await axios.post('http://localhost:5000/student/signin', {
+      const response = await axios.post('http://localhost:5001/student/signin', {
         email,
         password,
       });
@@ -82,7 +82,7 @@ export default function AuthPage() {
   };
   const adminSignIn  = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/admin/signin', {
+      const response = await axios.post('http://localhost:5001/admin/signin', {
         email,
         password,
       });

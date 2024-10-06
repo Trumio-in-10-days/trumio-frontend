@@ -23,7 +23,7 @@ export default function StudentProfile() {
   const [newSkill, setNewSkill] = useState('')
   const getStudent = useCallback(async () => {
     try {
-        const response = await axios.post('http://localhost:5000/getStudent', {
+        const response = await axios.post('http://localhost:5001/getStudent', {
             token: localStorage['authToken']
         });
         console.log(response);
@@ -41,14 +41,14 @@ export default function StudentProfile() {
 },[]);
 const getAppliedProjects = useCallback(async () => {
   try {
-      const response = await axios.post('http://localhost:5000/getAppliedProjecs', {
+      const response = await axios.post('http://localhost:5001/getAppliedProjecs', {
           token: localStorage['authToken']
       });
       console.log(response);
       if(response.status!==200){
         toast.success("Error fetching Profile!");
       }else{
-        setAppliedPrj(response.data.projects);
+        setAppliedPrj(response.data.projects);x
       }
   
     } catch (error) {
@@ -62,7 +62,7 @@ useEffect(() => {
   const addSkill = async (e) => {
     e.preventDefault();
     try {
-        const response = await axios.post('http://localhost:5000/updateSkill', {
+        const response = await axios.post('http://localhost:5001/updateSkill', {
             skill: newSkill,
             id: user._id,
             action: 'add'
@@ -89,7 +89,7 @@ useEffect(() => {
 
   const removeSkill = async (skillToRemove) => {
     try {
-        const response = await axios.post('http://localhost:5000/updateSkill', {
+        const response = await axios.post('http://localhost:5001/updateSkill', {
             skill: newSkill,
             id: user._id,
             action: 'delete'
@@ -114,7 +114,7 @@ useEffect(() => {
   const changeAlumni = async (al) => {
     console.log(al);
     try {
-      const response = await axios.post('http://localhost:5000/changeAlumni', {
+      const response = await axios.post('http://localhost:5001/changeAlumni', {
           token: localStorage['authToken'],
           alumni: al,
       });

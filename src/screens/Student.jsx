@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback} from 'react'
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
@@ -10,12 +10,12 @@ import { Badge } from "../../components/ui/badge"
 import { Loader2 } from "lucide-react";
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { ScrollArea } from "../../components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Briefcase, Star, ChevronRight, Search } from "lucide-react"
-
+import { format } from 'date-fns';
 
 // Mock video courses data
 const mockCourses = [
@@ -74,6 +74,7 @@ const mockProjects = [
 ]
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
     const [user, setUser] = useState();
   const [issue, setIssue] = useState('')
@@ -87,8 +88,10 @@ export default function StudentDashboard() {
 
   const handleApply = async (projectId) => {
     // console.log(projectId);
+    navigate(`/apply/${projectId}`)
     try {
-      const response = await axios.post('http://localhost:5000/applyProject', {
+
+      const response = await axios.post('http://localhost:5001/applyProject', {
         token: localStorage['authToken'],
         projectId,
       });
@@ -117,7 +120,7 @@ export default function StudentDashboard() {
 
   const getCourses = useCallback(async () => {
     try {
-        const response = await axios.get('http://localhost:5000/getAllCourses');
+        const response = await axios.get('http://localhost:5001/getAllCourses');
         console.log(response);
         if(response.status!==201){
           toast.success("Error fetching Courses!");
@@ -132,7 +135,7 @@ export default function StudentDashboard() {
 },[]);
 const getStudent = useCallback(async () => {
     try {
-        const response = await axios.post('http://localhost:5000/getStudent', {
+        const response = await axios.post('http://localhost:5001/getStudent', {
             token: localStorage['authToken']
         });
         console.log(response);
@@ -149,7 +152,7 @@ const getStudent = useCallback(async () => {
 },[]);
 const getOpenProjects = useCallback(async () => {
   try {
-      const response = await axios.get('http://localhost:5000/getAllOpenProjects');
+      const response = await axios.get('http://localhost:5001/getAllOpenProjects');
       console.log(response);
       if(response.status!==200){
         toast.success("Error fetching Projects!");
@@ -164,7 +167,7 @@ const getOpenProjects = useCallback(async () => {
 },[]);
     const completeCourse = async (id) => {
         try {
-            const response = await axios.post('http://localhost:5000/completeCourse', {
+            const response = await axios.post('http://localhost:5001/completeCourse', {
                 _id: id,
                 token: localStorage['authToken'],
             });
@@ -193,7 +196,7 @@ useEffect(() => {
     setRecommendedCourses([])
 
     try {
-        const response = await axios.post('http://localhost:5000/findSkillfromIssue', {
+        const response = await axios.post('http://localhost:5001/findSkillfromIssue', {
             issue:issue
         });
         console.log(response);
@@ -225,40 +228,48 @@ useEffect(() => {
         const bMatchCount = b.skills.filter(skill => generatedSkills.includes(skill)).length
         return bMatchCount - aMatchCount
       })
-  }
-
-  const ProjectCard = ({ project }) => (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          {project.title}
-          {/* {project.recommended && (
-            <Badge variant="secondary" className="ml-2">
-              <Star className="mr-1 h-3 w-3" /> Recommended
-            </Badge>
-          )} */}
-        </CardTitle>
-        <CardDescription>{project.assignedBy.name}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="mb-4">{project.description}</p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {project.skills.map((skill, index) => (
-            <Badge key={index} variant="outline">{skill}</Badge>
-          ))}
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={() => handleApply(project._id)}
-          disabled={appliedProjects.includes(project._id)}
-        >
-          {appliedProjects.includes(project._id) ? 'Applied' : 'Apply Now'}
-          <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
-  )
+  } 
+    const ProjectCard = ({ project }) => (
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            {project.title}
+          </CardTitle>
+          <CardDescription>{project.assignedBy.name}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">{project.description}</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {project.skills.map((skill, index) => (
+              <Badge key={index} variant="outline">{skill}</Badge>
+            ))}
+          </div>
+    
+          {/* Displaying the Expected Deadline */}
+          <div className="mb-4">
+  <Label className="block text-sm font-medium text-gray-700">
+    Expected Deadline
+  </Label>
+  <p className="text-gray-600">
+    {project.expectedDeadline 
+      ? format(new Date(project.expectedDeadline), 'MMMM do, yyyy') 
+      : "Not Specified"}
+  </p> {/* Displaying the expected deadline as formatted text */}
+</div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={() => handleApply(project._id)}
+            disabled={appliedProjects.includes(project._id)}
+          >
+            {appliedProjects.includes(project._id) ? 'Applied' : 'Apply Now'}
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </CardFooter>
+      </Card>
+    )
+    
+  
 
   return (
     <div className="container mx-auto p-4">

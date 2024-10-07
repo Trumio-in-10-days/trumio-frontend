@@ -444,38 +444,9 @@ export default function AdminDashboard() {
     {project.expectedDeadline 
       ? format(new Date(project.expectedDeadline), 'MMMM do, yyyy') 
       : "Not Specified"}
-  </p> {/* Displaying the expected deadline as formatted text */}
+  </p>  
 </div>
-                      {project.assignedStudents.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold mb-1">Applicants:</h4>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Action</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {project.assignedStudents.map((applicant) => (
-                                <TableRow key={applicant._id}>
-                                  <TableCell>{applicant.name}</TableCell>
-                                  <TableCell>
-                                    <Button
-                                      onClick={() =>
-                                        handleAssign(project._id, applicant._id)
-                                      }
-                                      size="sm"
-                                    >
-                                      Assign
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
+                       
                     </CardContent>
                     <CardFooter>
                       {project.assignedStudents > 0 && (

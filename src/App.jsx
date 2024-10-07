@@ -36,7 +36,7 @@ function App() {
       element: <Apply />,
     },
     {
-      path: "/projects/:student_id/applicants/:application._id",
+      path: "/projects/:student_id/applicants/:application_id",
       element: <ApplicationDetailsPage />,
     },
     {

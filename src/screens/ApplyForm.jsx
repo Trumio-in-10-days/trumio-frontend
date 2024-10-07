@@ -8,17 +8,18 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { useParams } from "react-router-dom";
+ 
 
 export default function ProjectApplicationForm() {
     const { projectId } = useParams();
     const [formData, setFormData] = useState({
-        startDate: "",
+        startDate: new Date(),
         weeklyProgress: [],
         contactNumber: ""  // Added contactNumber here
     });
     const [errors, setErrors] = useState({});
     const [weeks, setWeeks] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Loading state when fetching project details
     const [fetchError, setFetchError] = useState(null);
     const [projectDetails, setProjectDetails] = useState(null); // For storing project details
     const [submitLoading, setSubmitLoading] = useState(false); // Track submission loading state
@@ -26,11 +27,11 @@ export default function ProjectApplicationForm() {
     const [assignedBy, setAssignedBy] = useState(""); 
 
     useEffect(() => {
-        const fetchProjectDetails = async () => {
+        const fetchProjectDetails = async () => {  
             try {
                 const response = await axios.post("http://localhost:5001/getProjectById", { project_id: projectId });
                 const data = response.data.project;
-
+                console.log(data);
                 // Populate form data with the fetched project details
                 setProjectDetails(data);
                 setAssignedBy(data.assignedBy);
@@ -38,7 +39,7 @@ export default function ProjectApplicationForm() {
             } catch (error) {
                 setFetchError(error.response?.data?.msg || "Failed to fetch project details");
             } finally {
-                setLoading(false);
+                setLoading(false); // Set loading to false after fetching
             }
         };
 
@@ -47,14 +48,19 @@ export default function ProjectApplicationForm() {
 
     useEffect(() => {
         if (formData.startDate && projectDetails?.expectedDeadline) {
-            const start = new Date();
+            const start = new Date(formData.startDate);
             const end = new Date(projectDetails.expectedDeadline);
-            const diffTime = end - start;
-            if (diffTime < 0) {
+            const diffTime = Math.abs(end - start);
+            if (start > end) {
                 alert("Invalid Start Date");
             } else {
+                console.log("check");
+                console.log(diffTime);
+                console.log(start);
+                console.log(end);
                 const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
                 setWeeks(diffWeeks);
+                console.log(diffWeeks);
                 setFormData((prev) => ({
                     ...prev,
                     weeklyProgress: Array(diffWeeks).fill(""),
@@ -79,29 +85,24 @@ export default function ProjectApplicationForm() {
             const startDate = new Date(formData.startDate);
             const endDate = new Date(projectDetails?.expectedDeadline);
 
-            // Check if the end date is valid and after the start date
             if (endDate <= startDate) {
                 formErrors.endDate = "End date must be after start date";
             }
 
-            // Calculate the maximum allowed start date (one day before the end date)
             const maxStartDate = new Date(endDate);
             maxStartDate.setDate(endDate.getDate() - 1);
 
-            // Validate that the start date does not exceed the maximum allowed start date
             if (startDate > maxStartDate) {
                 formErrors.startDate = "Start date must be at most one day before the end date";
             }
         }
 
-        // Validate weekly progress inputs
         formData.weeklyProgress.forEach((progress, index) => {
             if (!progress.trim()) {
                 formErrors[`week${index + 1}`] = `Week ${index + 1} progress is required`;
             }
         });
 
-        // Validate contact number
         if (!formData.contactNumber) {
             formErrors.contactNumber = "Contact number is required";
         } else if (!/^\d{10}$/.test(formData.contactNumber)) {
@@ -142,7 +143,6 @@ export default function ProjectApplicationForm() {
         }
     };
 
-    // Utility function to format dates
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
         return new Date(dateString).toLocaleDateString(undefined, options);
@@ -155,22 +155,25 @@ export default function ProjectApplicationForm() {
             </CardHeader>
             <CardContent>
                 {loading ? (
-                    <p>Loading project details...</p>
+                    <div className="flex justify-center items-center">
+                          {/* Display a spinner while loading */}
+                        <p>Loading project details...</p>
+                    </div>
                 ) : fetchError ? (
                     <p className="text-red-500">{fetchError}</p>
                 ) : projectDetails ? (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <Label>Project Name</Label>
-                            <p>{projectDetails.name}</p> {/* Display project name */}
+                            <p>{projectDetails.name}</p>
                         </div>
                         <div>
                             <Label>Description</Label>
-                            <p>{projectDetails.description}</p> {/* Display project description */}
+                            <p>{projectDetails.description}</p>
                         </div>
                         <div>
                             <Label>Expected Deadline</Label>
-                            <p>{formatDate(projectDetails.expectedDeadline)}</p> {/* Display formatted expected deadline */}
+                            <p>{formatDate(projectDetails.expectedDeadline)}</p>
                         </div>
                         <div>
                             <Label htmlFor="startDate">Start Date</Label>
@@ -185,7 +188,7 @@ export default function ProjectApplicationForm() {
                             {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
                         </div>
                         <div>
-                            <Label htmlFor="contactNumber">Contact Number</Label> {/* Contact Number field */}
+                            <Label htmlFor="contactNumber">Contact Number</Label>
                             <Input
                                 id="contactNumber"
                                 name="contactNumber"

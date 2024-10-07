@@ -89,24 +89,7 @@ export default function StudentDashboard() {
   const handleApply = async (projectId) => {
     // console.log(projectId);
     navigate(`/apply/${projectId}`)
-    try {
-
-      const response = await axios.post('http://localhost:5001/applyProject', {
-        token: localStorage['authToken'],
-        projectId,
-      });
-      console.log(response);
-      if(response.status!==200){
-        toast.success("Error applying Project!");
-      }else{
-          // setCourses(response.data.courses);
-          setAppliedProjects([...appliedProjects, response.data.project._id]);
-      }
-  
-    } catch (error) {
-      toast.error(error);
-      console.log('Error during applying Project', error);
-    }
+    
   }
 
   const filteredProjects = openProjects.filter(project => {

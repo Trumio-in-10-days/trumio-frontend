@@ -40,7 +40,7 @@ export default function ProjectPage() {
       {project.assignedStudents.length === 0 ? (
         <ApplicantsList applicants={project.applicants} projectId={project_id} />
       ) : (
-        <WeeklyProgress weeklyProgress={project.weeklyProgress} />
+        <WeeklyProgress project={project} />
       )}
     </div>
   );

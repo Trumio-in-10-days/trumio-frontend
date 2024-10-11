@@ -87,21 +87,24 @@ export default function StudentDashboard() {
   }, [courses]);
 
   // Fetch courses with the correct formatting
-  const getCourses = useCallback(async () => {
+  const getCourses = useCallback(async (searchQuery) => {
     try {
       setIsLoading(true);
       const response = await axios.get('http://localhost:5001/getAllCourses', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
+        params: {
+          searchQuery
+        }
       });
-
+  
       if (response.status === 200) {
         const formattedCourses = response.data;
-
+  
         console.log("Formatted courses:", formattedCourses);
         setCourses(formattedCourses);
-        return formattedCourses; 
+        return formattedCourses;
       } else {
         throw new Error("Failed to fetch courses");
       }
@@ -121,6 +124,7 @@ export default function StudentDashboard() {
       setIsLoading(false);
     }
   }, []);
+  
 
   // Fetch student information
   const getStudent = useCallback(async () => {
@@ -197,19 +201,22 @@ export default function StudentDashboard() {
     setGeneratedSkills([]);
     setRecommendedCourses([]);
     setCurrentPage(1); // Reset to first page on new search
-
+  
     try {
       const response = await axios.post('http://localhost:5001/findSkillfromIssue', {
         issue: issue,
       });
-
+  
       if (response.status === 200) {
         const finalSkills = response.data.data.map(element => element.toLowerCase().trim());
         setGeneratedSkills(finalSkills);
         console.log("Generated Skills:", finalSkills);
-
-        // Fetch courses and then find matching courses
-        const fetchedCourses = await getCourses();
+  
+        // Combine default search terms with final skills
+        const searchQuery = `React, Node.js, Javascript, ${finalSkills.join(', ')}`;
+  
+        // Fetch courses using the dynamic search query
+        const fetchedCourses = await getCourses(searchQuery);
         const matchingCourses = findMatchingCourses(finalSkills, fetchedCourses);
         setRecommendedCourses(matchingCourses);
         console.log("Recommended Courses:", matchingCourses);

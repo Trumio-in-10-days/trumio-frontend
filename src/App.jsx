@@ -10,6 +10,7 @@ import AdminDashboard from "./screens/Admin";
 import StudentDashboard from "./screens/Student";
 import StudentProfile from "./screens/StudentProfile";
 import ProjectDetailsPage from "./screens/ProjectDetails";
+import CourseDetailPage from "./screens/CourseDetailPage";
 import Apply from "./screens/ApplyForm";
 import ApplicationDetailsPage from "./screens/ApplicationDetails";
 function App() {
@@ -46,6 +47,10 @@ function App() {
     {
       path: "/project/:project_id",
       element: <ProjectDetailsPage />,
+    },
+    {
+      path: "/course-detail/:id",
+      element: <CourseDetailPage />,
     },
   ]);
 

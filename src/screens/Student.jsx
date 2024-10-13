@@ -126,8 +126,12 @@ export default function StudentDashboard() {
     }
   }, []);
   
-  
-
+ 
+  function isAssigned(applicants, studentId) {
+    console.log({ applicants ,studentId });
+    return applicants.some((applicant) => applicant.student === studentId);
+  }
+ 
   // Fetch student information
   const getStudent = useCallback(async () => {
     try {
@@ -165,7 +169,8 @@ export default function StudentDashboard() {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Include if required by backend
         },
       });
-      if(response.status === 200){
+      if (response.status === 200) {
+        console.log(response.data.reqProjects);
         setOpenProjects(response.data.reqProjects);
       } else {
         throw new Error("Failed to fetch projects");
@@ -240,7 +245,9 @@ export default function StudentDashboard() {
       setIsGeneratingSkills(false);
     }
   };
-
+  function isApplicant(applicants, studentId) {
+    return applicants.some((applicant) => applicant.student === studentId);
+  }
   // Placeholder ProjectCard component (ensure it receives correct props)
   const ProjectCard = ({ project }) => (
     <Card className="mb-4">
@@ -270,10 +277,10 @@ export default function StudentDashboard() {
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={() => handleApply(project.id)}
-          disabled={appliedProjects.includes(project.id)}
+          onClick={() => handleApply(project._id)}
+          disabled={((isApplicant(project.applicants,user._id))||(isAssigned(project.assignedStudents,user._id)))}
         >
-          {appliedProjects.includes(project.id) ? 'Applied' : 'Apply Now'}
+          {isApplicant(project.applicants,user._id)||((isAssigned(project.assignedStudents,user._id))) ? 'Applied' : 'Apply Now'}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
@@ -288,6 +295,8 @@ export default function StudentDashboard() {
                           project.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
+  
+  console.log({"filetred":filteredProjects});
 
   // Calculate total pages
   const totalPages = Math.ceil(recommendedCourses.length / ITEMS_PER_PAGE);
@@ -323,7 +332,7 @@ export default function StudentDashboard() {
       <h1 className="text-3xl font-bold mb-6">Student Dashboard</h1>
       {user && (
         <Link to={`/student/${user._id}`}>
-          <Button>Profile</Button>
+          <Button className="mb-6 ">Profile</Button>
         </Link>
       )}
 

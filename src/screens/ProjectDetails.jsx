@@ -37,10 +37,11 @@ export default function ProjectPage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">{project.title}</h1>
-      {project.assignedStudents.length === 0 ? (
-        <ApplicantsList applicants={project.applicants} projectId={project_id} />
+      {project.assignedStudents.length === 2 ? (
+         <WeeklyProgress project={project} />
+        
       ) : (
-        <WeeklyProgress project={project} />
+        <ApplicantsList applicants={project.applicants} projectId={project_id} assigned={project.assignedStudents} />
       )}
     </div>
   );

@@ -8,14 +8,14 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { useParams } from "react-router-dom";
- 
 
 export default function ProjectApplicationForm() {
     const { projectId } = useParams();
     const [formData, setFormData] = useState({
         startDate: new Date(),
         weeklyProgress: [],
-        contactNumber: ""  // Added contactNumber here
+        contactNumber: "",  // Added contactNumber here
+        bidAmount: "" // Added bidAmount here
     });
     const [errors, setErrors] = useState({});
     const [weeks, setWeeks] = useState(0);
@@ -54,13 +54,8 @@ export default function ProjectApplicationForm() {
             if (start > end) {
                 alert("Invalid Start Date");
             } else {
-                console.log("check");
-                console.log(diffTime);
-                console.log(start);
-                console.log(end);
                 const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
                 setWeeks(diffWeeks);
-                console.log(diffWeeks);
                 setFormData((prev) => ({
                     ...prev,
                     weeklyProgress: Array(diffWeeks).fill(""),
@@ -108,7 +103,13 @@ export default function ProjectApplicationForm() {
         } else if (!/^\d{10}$/.test(formData.contactNumber)) {
             formErrors.contactNumber = "Please enter a valid 10-digit contact number";
         }
-       
+
+        if (!formData.bidAmount) {
+            formErrors.bidAmount = "Bid amount is required";
+        } else if (isNaN(formData.bidAmount) || formData.bidAmount <= 0) {
+            formErrors.bidAmount = "Please enter a valid positive number for bid amount";
+        }
+
         setErrors(formErrors);
         return Object.keys(formErrors).length === 0;
     };
@@ -129,6 +130,7 @@ export default function ProjectApplicationForm() {
                         progressDescription: progress
                     })),
                     contactNumber: formData.contactNumber,  // Sending contact number
+                    bidAmount: formData.bidAmount, // Sending bid amount
                     token: localStorage.getItem("authToken"),
                     assignedBy // Use stored auth token for authentication
                 });
@@ -156,7 +158,6 @@ export default function ProjectApplicationForm() {
             <CardContent>
                 {loading ? (
                     <div className="flex justify-center items-center">
-                          {/* Display a spinner while loading */}
                         <p>Loading project details...</p>
                     </div>
                 ) : fetchError ? (
@@ -198,6 +199,18 @@ export default function ProjectApplicationForm() {
                                 className={errors.contactNumber ? "border-red-500" : ""}
                             />
                             {errors.contactNumber && <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>}
+                        </div>
+                        <div>
+                            <Label htmlFor="bidAmount">Bid Amount ($)</Label>
+                            <Input
+                                id="bidAmount"
+                                name="bidAmount"
+                                type="text"
+                                value={formData.bidAmount}
+                                onChange={(e) => setFormData({ ...formData, bidAmount: e.target.value })}
+                                className={errors.bidAmount ? "border-red-500" : ""}
+                            />
+                            {errors.bidAmount && <p className="text-red-500 text-sm mt-1">{errors.bidAmount}</p>}
                         </div>
                         {weeks > 0 && (
                             <div className="space-y-4">

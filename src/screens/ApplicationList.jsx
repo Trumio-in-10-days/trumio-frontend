@@ -1,15 +1,17 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardFooter } from "../../components/ui/card"
-import { Button } from "../../components/ui/button" // Fixed import path
+import { Button } from "../../components/ui/button"
 import axios from 'axios'
+import Modal from '../../components/ui/modal' // Import the Modal component
+import ApplicationDetailsPage from './ApplicationDetails' // Import the Application Details component
 
 export default function ApplicantsList({ applicants, projectId, assigned }) {
   const [applicantDetails, setApplicantDetails] = useState([])
   const [assignedDetails, setAssignedDetails] = useState([])
   const [selectedApplicants, setSelectedApplicants] = useState([])
+  const [isModalOpen, setIsModalOpen] = useState(false) // State for modal visibility
+  const [selectedApplication, setSelectedApplication] = useState(null) // State for selected application
 
   // Fetch applicants' details
   useEffect(() => {
@@ -69,6 +71,18 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
     fetchAssignedDetails()
   }, [assigned])
 
+  // Function to open the modal with selected application details
+  const handleViewApplication = (application) => {
+    setSelectedApplication(application)
+    setIsModalOpen(true)
+  }
+
+  // Function to close the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedApplication(null)
+  }
+
   const handleSelect = async (applicationId, studentId) => {
     setSelectedApplicants(prev =>
       prev.includes(applicationId)
@@ -117,12 +131,10 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   <h2 className="text-xl font-semibold mb-2">{student.name}</h2>
                   <p className="text-sm text-gray-600 mb-2">Skills: {student.skills.join(', ')}</p>
                   <p className="text-sm text-gray-600 mb-2">Email: {student.email}</p>
+                  {application.bidAmount && (
+                    <p className="text-sm text-gray-600 mb-2">Bid Amount: ${application.bidAmount}</p>
+                  )}
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Link to={`/projects/${student._id}/applicants/${application._id}`}>
-                    <Button variant="outline">View Application</Button>
-                  </Link>
-                </CardFooter>
               </Card>
             ))
           ) : (
@@ -140,12 +152,10 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   <h2 className="text-xl font-semibold mb-2">{student.name}</h2>
                   <p className="text-sm text-gray-600 mb-2">Skills: {student.skills.join(', ')}</p>
                   <p className="text-sm text-gray-600 mb-2">Email: {student.email}</p>
+                  {application.bidAmount && (
+                    <p className="text-sm text-gray-600 mb-2">Bid Amount: ${application.bidAmount}</p>
+                  )}
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Link to={`/projects/${student._id}/applicants/${application._id}`}>
-                    <Button variant="outline">View Application</Button>
-                  </Link>
-                </CardFooter>
               </Card>
             ))
           ) : (
@@ -154,7 +164,7 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
         </div>
 
         {/* Alumni Applicants Section */}
-        <h3 className="text-lg font-semibold mb-4">Alumni Applicants</h3>
+        {assignedAlumni.length===0&&(<><h3 className="text-lg font-semibold mb-4">Alumni Applicants</h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
           {alumniApplicants.length > 0 ? (
             alumniApplicants.map(({ student, application }) => (
@@ -163,6 +173,9 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   <h2 className="text-xl font-semibold mb-2">{student.name}</h2>
                   <p className="text-sm text-gray-600 mb-2">Skills: {student.skills.join(', ')}</p>
                   <p className="text-sm text-gray-600 mb-2">Email: {student.email}</p>
+                  {application.bidAmount && (
+                    <p className="text-sm text-gray-600 mb-2">Bid Amount: ${application.bidAmount}</p>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button
@@ -171,19 +184,19 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   >
                     {selectedApplicants.includes(application._id) ? 'Deselect' : 'Select'}
                   </Button>
-                  <Link to={`/projects/${student._id}/applicants/${application._id}`}>
-                    <Button variant="outline">View Application</Button>
-                  </Link>
+                  <Button onClick={() => handleViewApplication(application)} variant="outline">
+                    View Application
+                  </Button>
                 </CardFooter>
               </Card>
             ))
           ) : (
             <p className="text-gray-600">No alumni applicants.</p>
           )}
-        </div>
+        </div></>)}
 
         {/* Student Applicants Section */}
-        <h3 className="text-lg font-semibold mb-4">Student Applicants</h3>
+        {assignedStudents.length === 0 && (<><h3 className="text-lg font-semibold mb-4">Student Applicants</h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {studentApplicants.length > 0 ? (
             studentApplicants.map(({ student, application }) => (
@@ -192,6 +205,9 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   <h2 className="text-xl font-semibold mb-2">{student.name}</h2>
                   <p className="text-sm text-gray-600 mb-2">Skills: {student.skills.join(', ')}</p>
                   <p className="text-sm text-gray-600 mb-2">Email: {student.email}</p>
+                  {application.bidAmount && (
+                    <p className="text-sm text-gray-600 mb-2">Bid Amount: ${application.bidAmount}</p>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button
@@ -200,17 +216,22 @@ export default function ApplicantsList({ applicants, projectId, assigned }) {
                   >
                     {selectedApplicants.includes(application._id) ? 'Deselect' : 'Select'}
                   </Button>
-                  <Link to={`/projects/${student._id}/applicants/${application._id}`}>
-                    <Button variant="outline">View Application</Button>
-                  </Link>
+                  <Button onClick={() => handleViewApplication(application)} variant="outline">
+                    View Application
+                  </Button>
                 </CardFooter>
               </Card>
             ))
           ) : (
             <p className="text-gray-600">No student applicants.</p>
           )}
-        </div>
+        </div></>)}
       </div>
+
+      {/* Modal for Application Details */}
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        {selectedApplication && <ApplicationDetailsPage application={selectedApplication} />}
+      </Modal>
     </div>
   )
 }

@@ -98,9 +98,9 @@ export default function WeeklyProgress({ project }) {
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">{student.name}</h3>
                   <p className="text-gray-700"><strong>Email:</strong> {student.email}</p>
                   <p className="text-gray-700"><strong>Skills:</strong> {student.skills.join(', ')}</p>
-                  <p className="text-gray-700"><strong>Expected Progress:</strong> {application.expectedProgress}</p>
+                 <h4 className="mt-6 mb-4 text-lg font-medium text-gray-800"><strong>Expected Weekly Progress:</strong> {application.expectedProgress} </h4>
 
-                  <h4 className="mt-6 mb-4 text-lg font-medium text-gray-800">Weekly Progress</h4>
+                
                   {renderWeeklyProgress(application.weeklyProgress)}
                 </CardContent>
               </Card>
@@ -122,9 +122,9 @@ export default function WeeklyProgress({ project }) {
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">{student.name}</h3>
                   <p className="text-gray-700"><strong>Email:</strong> {student.email}</p>
                   <p className="text-gray-700"><strong>Skills:</strong> {student.skills.join(', ')}</p>
-                  <p className="text-gray-700"><strong>Expected Progress:</strong> {application.expectedProgress}</p>
+                  <h4 className="mt-6 mb-4 text-lg font-medium text-gray-800"><strong>Expected Weekly Progress:</strong> {application.expectedProgress} </h4>
 
-                  <h4 className="mt-6 mb-4 text-lg font-medium text-gray-800">Weekly Progress</h4>
+ 
                   {renderWeeklyProgress(application.weeklyProgress)}
                 </CardContent>
               </Card>

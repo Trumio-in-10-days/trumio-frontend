@@ -92,7 +92,8 @@ export default function StudentDashboard() {
       setIsLoading(true);
       const response = await axios.get('http://localhost:5001/getAllCourses', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          // Remove Authorization header if not needed
+          // Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
         params: {
           searchQuery
@@ -125,10 +126,12 @@ export default function StudentDashboard() {
     }
   }, []);
   
+ 
   function isAssigned(applicants, studentId) {
     console.log({ applicants ,studentId });
     return applicants.some((applicant) => applicant.student === studentId);
   }
+ 
   // Fetch student information
   const getStudent = useCallback(async () => {
     try {
@@ -217,7 +220,7 @@ export default function StudentDashboard() {
         console.log("Generated Skills:", finalSkills);
   
         // Combine default search terms with final skills
-        const searchQuery = `React, Node.js, Javascript, ${finalSkills.join(', ')}`;
+        const searchQuery = `${finalSkills.join(', ')}`;
   
         // Fetch courses using the dynamic search query
         const fetchedCourses = await getCourses(searchQuery);
